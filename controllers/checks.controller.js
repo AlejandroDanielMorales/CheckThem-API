@@ -56,6 +56,50 @@ async function deleteCheck(req, res) {
     res.status(500).json({ error: err.message });
   }
 }
+async function updateExpiredChecks() {
+  try {
+    const today = new Date();
+    const twoMonthsAgo = new Date(today);
+    const oneMonthAgo = new Date(today);
+
+    twoMonthsAgo.setDate(1); 
+    twoMonthsAgo.setMonth(today.getMonth() - 2);
+
+    oneMonthAgo.setDate(1);
+    oneMonthAgo.setMonth(today.getMonth() - 1);
+
+    // 1. Marcar como "payed" los cheques vencidos hace 2 meses o más
+    const resultPayed = await Checks.updateMany(
+      {
+        dateOfExpiration: { $lte: twoMonthsAgo },
+        state: { $ne: "payed" },
+      },
+      {
+        $set: { state: "payed" },
+      }
+    );
+
+    // 2. Marcar como "onPayDate" los cheques vencidos hace al menos 1 mes (pero no más de 2)
+    const resultOnPayDate = await Checks.updateMany(
+      {
+        dateOfExpiration: {
+          $lte: oneMonthAgo,
+          $gt: twoMonthsAgo, // ⚠️ para evitar pisar los ya marcados como "payed"
+        },
+        state: { $ne: "onPayDate" },
+      },
+      {
+        $set: { state: "onPayDate" },
+      }
+    );
+
+    console.log(`✅ ${resultPayed.modifiedCount} cheques marcados como "payed".`);
+    console.log(`✅ ${resultOnPayDate.modifiedCount} cheques marcados como "onPayDate".`);
+  } catch (error) {
+    console.error("❌ Error actualizando cheques:", error);
+  }
+}
+
 
 module.exports = {
   createCheck,
@@ -63,4 +107,5 @@ module.exports = {
   getCheckById,
   updateCheck,
   deleteCheck,
+  updateExpiredChecks,
 };
