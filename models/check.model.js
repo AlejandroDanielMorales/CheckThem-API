@@ -7,9 +7,12 @@ const checksSchema = new Schema({
   dateOfEmission: { type: Date, required: true },
   dateOfExpiration: { type: Date, required: true },
   providerName: { type: String, required: true, trim: true, maxlength: 100 },
-  profilePicture: { type: String, trim: true },
   amount: { type: Number, required: true, min: 0 },
-  payed: { type: Boolean, default: false }
+   state: {
+    type: String,
+    enum: ["pending", "onPayDate", "payed"],
+    default: "pending"
+  }
 }, { timestamps: true });
   
 
