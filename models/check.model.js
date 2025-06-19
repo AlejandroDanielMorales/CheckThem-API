@@ -3,6 +3,7 @@ const Schema = mongoose.Schema;
 
 
 const checksSchema = new Schema({
+  checkNumber: { type: String, required: true, unique: true, trim: true, maxlength: 20 },
   createdAt: { type: Date, default: Date.now },
   dateOfEmission: { type: Date, required: true },
   dateOfExpiration: { type: Date, required: true },

@@ -33,6 +33,7 @@ async function createCheck(req, res) {
 // Obtener todos los cheques
 async function getAllChecks(req, res) {
   try {
+    await updateExpiredChecks();
     const checks = await Checks.find();
     res.json(checks);
   } catch (err) {
@@ -43,6 +44,7 @@ async function getAllChecks(req, res) {
 // Obtener un cheque por ID
 async function getCheckById(req, res) {
   try {
+    await updateExpiredChecks();
     const check = await Checks.findById(req.params.id);
     if (!check) return res.status(404).json({ error: "Cheque no encontrado" });
     res.json(check);
@@ -110,6 +112,7 @@ async function updateExpiredChecks() {
 const resultPending = await Checks.updateMany(
       {
         dateOfExpiration: { $gt: today },
+        state: { $ne: "pending" },
       },
       {
         $set: { state: "pending" },
